@@ -1,0 +1,87 @@
+.data
+argument1: .word 5 # base number in pow function
+argument2: .word 3 # power number in pow function
+str1: .string " raised to the power of "
+str2: .string " is "
+
+.text
+main:
+	# Load arguments from static data
+	lw a0, argument1 
+	lw a1, argument2
+	
+	# Jump-and-link to the 'pow' label
+	jal ra, pow
+	
+	# Print the result to console
+	add a2, a0, zero
+	lw a0, argument1
+	lw a1, argument2
+	jal ra,	printResult
+
+	#Exit program
+	li a0, 10
+	ecall
+
+pow:
+	# Save original register value
+	addi sp, sp, -8
+	sw ra, 4(sp)
+	sw s0, 0(sp)
+	
+	addi s0, zero, 1 # initialize result
+	addi t2, zero, 1 # restric loop time
+	bne a1, zero, loop
+	ret
+	
+# base loop multiply itself
+loop:
+	mv t0, a0
+	mv t1, s0
+	jal ra, multiplyBase
+	addi a1, a1, -1
+	bne a1, zero, loop
+	
+	# restore return address
+	mv a0, s0
+	lw s0, 0(sp)
+	lw ra, 4(sp)
+	addi sp, sp, 8
+	ret
+
+multiplyBase:
+	add s0, s0, t1
+	addi t0, t0, -1
+	bne t0, t2, multiplyBase
+	ret
+
+# expects:
+# a0: Value of base number
+# a1: Value of power number
+# a2: power of base result
+printResult:
+	mv t0, a0
+	mv t1, a1
+	mv t2, a2
+
+	add a1, t0, zero
+	li a0, 1
+	ecall
+
+	la a1, str1
+	li a0, 4
+	ecall
+
+	add a1, t1, zero
+	li a0, 1
+	ecall
+
+	la a1, str2
+	li a0, 4
+	ecall
+
+	add a1, t2, zero
+	li a0, 1
+	ecall
+	
+	ret
